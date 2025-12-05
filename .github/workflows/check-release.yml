@@ -1,0 +1,79 @@
+name: Check OpenWrt Release
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Every hour
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+env:
+  OPENWRT_REPO: https://git.openwrt.org/openwrt/openwrt.git
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Cleanup old workflow runs
+      continue-on-error: true
+      run: |
+        # Keep only last 3 runs of this workflow
+        gh run list --workflow=check-release.yml --repo ${{ github.repository }} \
+          --json databaseId --jq '.[3:] | .[].databaseId' | \
+        while read run_id; do
+          echo "Deleting run $run_id"
+          gh run delete "$run_id" --repo ${{ github.repository }} || true
+        done
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Get latest OpenWrt tag
+      id: openwrt
+      run: |
+        TAG=$(git ls-remote --tags "$OPENWRT_REPO" | \
+              grep -oE 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' | \
+              sed 's|refs/tags/||' | sort -V | tail -1)
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "Latest OpenWrt: $TAG"
+
+    - name: Check if release exists
+      id: check
+      run: |
+        if gh release view "${{ steps.openwrt.outputs.tag }}" --repo ${{ github.repository }} &>/dev/null; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+          echo "Release ${{ steps.openwrt.outputs.tag }} already exists"
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+          echo "New release detected: ${{ steps.openwrt.outputs.tag }}"
+        fi
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Check if build is running
+      id: build_status
+      run: |
+        RUNNING=$(gh run list --workflow=build.yml --repo ${{ github.repository }} \
+          --status in_progress --status queued --json databaseId --jq 'length' 2>/dev/null || echo "0")
+        if [ "${RUNNING:-0}" -gt 0 ]; then
+          echo "running=true" >> $GITHUB_OUTPUT
+          echo "Build already in progress, skipping trigger"
+        else
+          echo "running=false" >> $GITHUB_OUTPUT
+        fi
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Trigger build workflow
+      if: steps.check.outputs.exists == 'false' && steps.build_status.outputs.running != 'true'
+      run: |
+        gh workflow run build.yml \
+          --repo ${{ github.repository }} \
+          -f openwrt_version="${{ steps.openwrt.outputs.tag }}"
+        echo "Build triggered for ${{ steps.openwrt.outputs.tag }}"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
