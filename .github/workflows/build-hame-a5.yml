@@ -539,11 +539,10 @@ jobs:
         if [ ! -f "$DTS_FILE" ]; then
           printf '%s\n' \
             '// SPDX-License-Identifier: GPL-2.0-or-later OR MIT' \
-            '/dts-v1/;' \
+            '// HAME MPR-A5 with '"${FLASH_MB}"'MB flash' \
             '' \
             '#include "rt5350_hame_mpr-a5.dts"' \
             '' \
-            '// HAME MPR-A5 with '"${FLASH_MB}"'MB flash' \
             '/ {' \
             '	model = "HAME MPR-A5 ('"${FLASH_MB}"'MB)";' \
             '	compatible = "hame,mpr-a5-'"${FLASH_MB}"'m", "hame,mpr-a5", "ralink,rt5350-soc";' \
