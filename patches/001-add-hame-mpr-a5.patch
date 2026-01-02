@@ -14,9 +14,9 @@ Hardware:
 
 Signed-off-by: OpenWrt Build <build@openwrt.org>
 ---
- target/linux/ramips/dts/rt5350_hame_mpr-a5.dts | 119 +++++++++++++++++++++++++
+ target/linux/ramips/dts/rt5350_hame_mpr-a5.dts | 132 +++++++++++++++++++++++++
  target/linux/ramips/image/rt305x.mk            |   8 ++
- 2 files changed, 127 insertions(+)
+ 2 files changed, 140 insertions(+)
  create mode 100644 target/linux/ramips/dts/rt5350_hame_mpr-a5.dts
 
 diff --git a/target/linux/ramips/dts/rt5350_hame_mpr-a5.dts b/target/linux/ramips/dts/rt5350_hame_mpr-a5.dts
@@ -24,7 +24,7 @@ new file mode 100644
 index 0000000000..1234567890
 --- /dev/null
 +++ b/target/linux/ramips/dts/rt5350_hame_mpr-a5.dts
-@@ -0,0 +1,119 @@
+@@ -0,0 +1,132 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 +
 +#include "rt5350.dtsi"
