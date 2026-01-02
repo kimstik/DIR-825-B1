@@ -590,7 +590,8 @@ jobs:
         printf '%s\n' \
           "CONFIG_TARGET_${TARGET}=y" \
           "CONFIG_TARGET_${TARGET}_${SUBTARGET}=y" \
-          "CONFIG_TARGET_${TARGET}_${SUBTARGET}_DEVICE_${DEVICE_CFG}=y" > .config
+          "CONFIG_TARGET_${TARGET}_${SUBTARGET}_DEVICE_${DEVICE_CFG}=y" \
+          "CONFIG_PACKAGE_luci=y" > .config
 
         # Optimization config based on level
         case "$OPT" in
